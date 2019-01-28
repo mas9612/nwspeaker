@@ -37,22 +37,31 @@ func NewRequest(dst string) (*Packet, error) {
 		HLen:     ethernet.EtherLen,
 		PLen:     net.IPv4len,
 		Op:       OpRequest,
-		DstHAddr: ethernet.Broadcast,
+		DstHAddr: ethernet.Zero,
 		DstPAddr: dstIP,
 	}, nil
 }
 
 // NewReply returns Packet struct initialized as ARP reply packet.
-func NewReply(dstHAddr net.HardwareAddr, dstPAddr net.IP) *Packet {
+func NewReply(dstHAddr, dstPAddr string) (*Packet, error) {
+	dstMAC, err := net.ParseMAC(dstHAddr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse MAC address '%s'", dstHAddr)
+	}
+	dstIP := net.ParseIP(dstPAddr)
+	if dstIP == nil {
+		return nil, errors.Errorf("failed to parse IP address '%s'", dstPAddr)
+	}
+
 	return &Packet{
 		HType:    HardwareTypeEthernet,
 		PType:    ProtocolTypeIPv4,
 		HLen:     ethernet.EtherLen,
 		PLen:     net.IPv4len,
 		Op:       OpReply,
-		DstHAddr: dstHAddr,
-		DstPAddr: dstPAddr,
-	}
+		DstHAddr: dstMAC,
+		DstPAddr: dstIP,
+	}, nil
 }
 
 // Encode returns byte-encoded data to send ARP packet to network.

@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	iface  = flag.String("interface", "", "Interface name to send ARP packet.")
-	target = flag.String("target", "", "Target IP address. For ARP request: IP address that you want to know MAC address. For ARP reply: IP address that will be sent ARP reply.")
+	iface     = flag.String("interface", "", "Interface name to send ARP packet.")
+	target    = flag.String("target", "", "Target IP address. For ARP request: IP address that you want to know MAC address. For ARP reply: IP address that will be sent ARP reply.")
+	targetMAC = flag.String("target-mac", "", "Target MAC address. Only valid when -op is \"reply\".")
+	op        = flag.String("op", "request", "ARP operation type. Either \"request\" or \"reply\" is accepted. Default: \"request\".")
 )
 
 func init() {
@@ -24,6 +26,10 @@ func init() {
 	}
 	if *target == "" {
 		fmt.Fprintln(os.Stderr, "Please pass -target flag")
+		os.Exit(1)
+	}
+	if *op != "request" && *op != "reply" {
+		fmt.Fprintln(os.Stderr, "-op is either \"request\" or \"reply\"")
 		os.Exit(1)
 	}
 }
@@ -50,15 +56,23 @@ func main() {
 		}
 	}
 
-	payload, err := arp.NewRequest(*target)
+	var payload *arp.Packet
+	var dstMAC string
+	if *op == "request" {
+		payload, err = arp.NewRequest(*target)
+		dstMAC = "ff:ff:ff:ff:ff:ff"
+	} else {
+		payload, err = arp.NewReply(*targetMAC, *target)
+		dstMAC = *targetMAC
+	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to build ARP request packet\n")
+		fmt.Fprintln(os.Stderr, "failed to build ARP packet\n")
 		os.Exit(1)
 	}
 	payload.SrcHAddr = out.HardwareAddr
 	payload.SrcPAddr = ip
 
-	if err := ethernet.Send(*iface, "ff:ff:ff:ff:ff:ff", payload, ethernet.TypeARP); err != nil {
+	if err := ethernet.Send(*iface, dstMAC, payload, ethernet.TypeARP); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
