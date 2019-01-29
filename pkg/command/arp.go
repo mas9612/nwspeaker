@@ -39,7 +39,8 @@ Options:
   -src-mac    Source MAC address.
   -src-ip     Source IP address.
   -dst-mac    Destination MAC address. Ignored when -op is "request".
-  -dst-ip     Destination IP address. Required when you craft ARP request.
+              Required when -op is "reply".
+  -dst-ip     Destination IP address. Required.
   -op         ARP operation type. Only "request" or "reply" will be accepted.
               Default: "request"
 `
@@ -99,6 +100,67 @@ func craftARPRequest() (*arp.Packet, error) {
 	return packet, nil
 }
 
+func craftARPReply() (*arp.Packet, error) {
+	packet := &arp.Packet{
+		HType: arp.HardwareTypeEthernet,
+		PType: arp.ProtocolTypeIPv4,
+		HLen:  ethernet.EtherLen,
+		PLen:  net.IPv4len,
+		Op:    arp.OpReply,
+	}
+
+	if srcMac == "" {
+		mac, err := iface.MACAddressByName(out)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get MAC address")
+		}
+		packet.SrcHAddr = mac
+	} else {
+		mac, err := net.ParseMAC(srcMac)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid MAC address '%s'", mac)
+		}
+		packet.SrcHAddr = mac
+	}
+
+	if srcIP == "" {
+		ip, err := iface.IPv4AddressByName(out)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get IPv4 address")
+		}
+		if ip == nil {
+			return nil, errors.Wrapf(err, "no IPv4 address is assigned to \"%s\"", out)
+		}
+		packet.SrcPAddr = ip
+	} else {
+		ip := net.ParseIP(srcIP)
+		if ip == nil {
+			return nil, errors.Errorf("invalid IPv4 address '%s'", srcIP)
+		}
+		packet.SrcPAddr = ip
+	}
+
+	if dstMac == "" {
+		return nil, errors.New("-dst-mac is required when you craft ARP request")
+	}
+	mac, err := net.ParseMAC(dstMac)
+	if err != nil {
+		return nil, errors.Errorf("invalid MAC address '%s'", dstMac)
+	}
+	packet.DstHAddr = mac
+
+	if dstIP == "" {
+		return nil, errors.New("-dst-ip is required when you craft ARP request")
+	}
+	ip := net.ParseIP(dstIP)
+	if ip == nil {
+		return nil, errors.Errorf("invalid IPv4 address '%s'", dstIP)
+	}
+	packet.DstPAddr = ip
+
+	return packet, nil
+}
+
 // Run runs ArpCommand and returns exit status.
 func (c *ArpCommand) Run(args []string) int {
 	flagSet := flag.NewFlagSet("arp", flag.ExitOnError)
@@ -131,6 +193,12 @@ func (c *ArpCommand) Run(args []string) int {
 		}
 		dstMac = "ff:ff:ff:ff:ff:ff"
 	case "reply":
+		var err error
+		packet, err = craftARPReply()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			return 1
+		}
 	}
 
 	if err := ethernet.Send(out, dstMac, packet, ethernet.TypeARP); err != nil {
