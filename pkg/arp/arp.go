@@ -27,7 +27,7 @@ func NewRequest(dst string) (*Packet, error) {
 	if dstIP == nil {
 		return nil, errors.Errorf("failed to parse given address '%s'", dst)
 	}
-	if dstIP.To4 == nil {
+	if dstIP.To4() == nil {
 		return nil, errors.Errorf("given address '%s' is not an IPv4 address", dst)
 	}
 
