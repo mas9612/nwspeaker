@@ -66,7 +66,7 @@ func main() {
 		dstMAC = *targetMAC
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to build ARP packet\n")
+		fmt.Fprintln(os.Stderr, "failed to build ARP packet")
 		os.Exit(1)
 	}
 	payload.SrcHAddr = out.HardwareAddr
