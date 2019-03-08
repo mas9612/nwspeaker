@@ -1,6 +1,6 @@
 BIN_CRAFTPKT=craftpkt
 
-all: test build
+all: dep test build
 
 build:
 	# craftpkt is only for linux because it uses linux specific feature
