@@ -1,6 +1,9 @@
 // +build linux
 // +build !appengine
+<<<<<<< HEAD
 // +build !android
+=======
+>>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
 
 package isatty
 

@@ -2,7 +2,7 @@ BIN_CRAFTPKT=craftpkt
 
 .PHONY: all clean
 
-all: test dep build
+all: dep test build
 
 build:
 	# craftpkt is only for linux because it uses linux specific feature

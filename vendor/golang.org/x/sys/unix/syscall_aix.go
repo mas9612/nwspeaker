@@ -545,5 +545,8 @@ func Poll(fds []PollFd, timeout int) (n int, err error) {
 //sys	gettimeofday(tv *Timeval, tzp *Timezone) (err error)
 //sysnb	Time(t *Time_t) (tt Time_t, err error)
 //sys	Utime(path string, buf *Utimbuf) (err error)
+<<<<<<< HEAD
 
 //sys	Getsystemcfg(label int) (n uint64)
+=======
+>>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
