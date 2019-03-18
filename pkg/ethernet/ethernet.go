@@ -29,20 +29,31 @@ type Payload interface {
 	Encode() []byte
 }
 
+// Option is option which is used to send ethernet frame.
+type Option func(*config)
+
+type config struct {
+	srcMac net.HardwareAddr
+}
+
 // Send sends ethernet packet to given dst with given payload
-func Send(outIfname, dst string, payload Payload, proto uint16) error {
+func Send(outIfname string, dst net.HardwareAddr, payload Payload, proto uint16, opts ...Option) error {
+	c := config{}
+	for _, o := range opts {
+		o(&c)
+	}
+
 	oif, err := net.InterfaceByName(outIfname)
 	if err != nil {
 		return errors.Wrap(err, "failed to get out iface info")
 	}
-	hw, err := net.ParseMAC(dst)
-	if err != nil {
-		return errors.Wrap(err, "faield to parse dst MAC address")
+	if c.srcMac == nil {
+		c.srcMac = oif.HardwareAddr
 	}
 
 	header := Header{
-		SrcAddr:   oif.HardwareAddr,
-		DstAddr:   hw,
+		SrcAddr:   c.srcMac,
+		DstAddr:   dst,
 		EtherType: proto,
 	}
 
@@ -52,16 +63,16 @@ func Send(outIfname, dst string, payload Payload, proto uint16) error {
 	copy(packet[0:], header.Encode())
 	copy(packet[HeaderLen:], payload.Encode())
 
-	fd, err := unix.Socket(unix.AF_PACKET, unix.SOCK_RAW, unix.ETH_P_ARP)
+	fd, err := unix.Socket(unix.AF_PACKET, unix.SOCK_RAW, int(proto))
 	if err != nil {
 		return errors.Wrap(err, "failed to open socket")
 	}
 	addr := &unix.SockaddrLinklayer{
-		Protocol: unix.ETH_P_ARP,
+		Protocol: proto,
 		Ifindex:  oif.Index,
 		Halen:    EtherLen,
 	}
-	copy(addr.Addr[:], hw[:])
+	copy(addr.Addr[:], dst[:])
 
 	err = unix.Sendto(fd, packet, 0, addr)
 	if err != nil {

@@ -253,10 +253,7 @@ const (
 	SYS_TIMER_GETOVERRUN       = 264
 	SYS_TIMER_DELETE           = 265
 	SYS_TIMER_CREATE           = 266
-<<<<<<< HEAD
 	SYS_VSERVER                = 267
-=======
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
 	SYS_IO_SETUP               = 268
 	SYS_IO_DESTROY             = 269
 	SYS_IO_SUBMIT              = 270

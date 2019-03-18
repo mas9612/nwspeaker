@@ -201,7 +201,7 @@ func (c *ArpCommand) Run(args []string) int {
 		}
 	}
 
-	if err := ethernet.Send(out, dstMac, packet, ethernet.TypeARP); err != nil {
+	if err := ethernet.Send(out, packet.DstHAddr, packet, ethernet.TypeARP); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return 1
 	}

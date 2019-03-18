@@ -42,17 +42,6 @@
   version = "v1.0.0"
 
 [[projects]]
-<<<<<<< HEAD
-  digest = "1:a2cff208d4759f6ba1b1cd228587b0a1869f95f22542ec9cd17fff64430113c7"
-  name = "github.com/jessevdk/go-flags"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "c6ca198ec95c841fdb89fc0de7496fed11ab854e"
-  version = "v1.4.0"
-
-[[projects]]
-=======
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
   digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
@@ -61,21 +50,12 @@
   version = "v0.0.9"
 
 [[projects]]
-<<<<<<< HEAD
   digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
   revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
   version = "v0.0.7"
-=======
-  digest = "1:b5cf82c3199c040b82e2bb3fbcbcf6771c2759f9c6b839621b0714c822167581"
-  name = "github.com/mattn/go-isatty"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "a6dda38a851a575e6799957cdd53ffe0b3fdd90f"
-  version = "v0.0.5"
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
 
 [[projects]]
   digest = "1:dac0667a3fcdd4102a5da07abeddc89eb2f125b1e91af1ea9544c80eaff19c9a"
@@ -108,28 +88,16 @@
 
 [[projects]]
   branch = "master"
-<<<<<<< HEAD
   digest = "1:f36c7b9a36158e62ffe5d8b02d1b5955500c13106cdaeebf5323d88863cae96f"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
   revision = "a2f829d7f35f2ed1c3520c553a6226495455cae0"
-=======
-  digest = "1:d0e9a312c4610a508569ab25e54d34600b1a96d19b1866ece104ffdf1c1b9d2c"
-  name = "golang.org/x/sys"
-  packages = ["unix"]
-  pruneopts = "UT"
-  revision = "cd391775e71e684db52b63df9affd58269495083"
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-<<<<<<< HEAD
-    "github.com/jessevdk/go-flags",
-=======
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
     "github.com/mitchellh/cli",
     "github.com/pkg/errors",
     "golang.org/x/sys/unix",
