@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"net"
 
+	"github.com/mas9612/nwspeaker/pkg/checksum"
 	"github.com/mas9612/nwspeaker/pkg/ethernet"
 	"github.com/mas9612/nwspeaker/pkg/iface"
 	"github.com/pkg/errors"
@@ -47,45 +48,10 @@ func (h *Header) Encode() []byte {
 	copy(buffer[12:], h.SrcAddress.To4())
 	copy(buffer[16:], h.DstAddress.To4())
 
-	checksum := calculateChecksum(buffer)
+	checksum := checksum.SumOfOnesComplement16(buffer)
 	copy(buffer[10:], checksum)
 
 	return buffer
-}
-
-func onesComplement(b byte) byte {
-	var complement byte
-	for i := 7; i >= 0; i-- {
-		if (b >> uint(i) & 0x1) == 0x0 {
-			complement |= 0x1
-		}
-		if i > 0 {
-			complement <<= 1
-		}
-	}
-	return complement
-}
-
-func bytesOnesComplement(data []byte) []byte {
-	complement := make([]byte, len(data))
-	for i, d := range data {
-		complement[i] = onesComplement(d)
-	}
-	return complement
-}
-
-func calculateChecksum(b []byte) []byte {
-	var sum uint32
-	for i := 0; i < len(b); i += 2 {
-		sum += uint32(binary.BigEndian.Uint16(b[i : i+2]))
-		if (sum >> 16) > 0x0 {
-			sum += sum >> 16
-			sum &= 0xffff // clear carry bit
-		}
-	}
-	sumBytes := make([]byte, 2)
-	binary.BigEndian.PutUint16(sumBytes, uint16(sum))
-	return bytesOnesComplement(sumBytes)
 }
 
 // Packet represents IPv4 packet.
@@ -106,7 +72,16 @@ func (p *Packet) Encode() []byte {
 // Option is option which is used to send IP packet.
 type Option func(*config)
 
-type config struct{}
+// SetDstMac sets the destination MAC address.
+func SetDstMac(dst net.HardwareAddr) Option {
+	return func(c *config) {
+		c.DstMac = dst
+	}
+}
+
+type config struct {
+	DstMac net.HardwareAddr
+}
 
 // Send sends given packet data to dst.
 // packet must not include IPv4 header.
@@ -137,9 +112,6 @@ func Send(outIfname string, dst net.IP, payload []byte, proto uint8, opts ...Opt
 		Data:   payload,
 	}
 
-	dstMac, err := iface.MACAddressByName(outIfname)
-	if err != nil {
-		return errors.Wrap(err, "failed to get destination MAC address")
-	}
-	return ethernet.Send(outIfname, dstMac, pkt, ethernet.TypeIPv4)
+	// TODO: if DstMAC option is empty, resolve destination mac address with ARP
+	return ethernet.Send(outIfname, c.DstMac, pkt, ethernet.TypeIPv4)
 }
