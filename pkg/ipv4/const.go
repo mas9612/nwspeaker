@@ -22,4 +22,7 @@ const (
 	ProtoTCP = 6
 	// ProtoUDP is the protocol number of UDP.
 	ProtoUDP = 17
+
+	// DefaultTTL is the default Time To Live.
+	DefaultTTL = 255
 )
