@@ -3,6 +3,10 @@ package ipv4
 import (
 	"encoding/binary"
 	"net"
+
+	"github.com/mas9612/nwspeaker/pkg/ethernet"
+	"github.com/mas9612/nwspeaker/pkg/iface"
+	"github.com/pkg/errors"
 )
 
 // Header represents IPv4 header.
@@ -97,4 +101,45 @@ func (p *Packet) Encode() []byte {
 	copy(buffer[0:], header)
 	copy(buffer[len(header):], p.Data)
 	return buffer
+}
+
+// Option is option which is used to send IP packet.
+type Option func(*config)
+
+type config struct{}
+
+// Send sends given packet data to dst.
+// packet must not include IPv4 header.
+func Send(outIfname string, dst net.IP, payload []byte, proto uint8, opts ...Option) error {
+	c := config{}
+	for _, o := range opts {
+		o(&c)
+	}
+
+	src, err := iface.IPv4AddressByName(outIfname)
+	if err != nil {
+		return errors.Wrap(err, "failed to get source IP address")
+	}
+
+	hdr := Header{
+		Version:     Version4,
+		IHL:         HeaderLen / 4,
+		TotalLength: uint16(HeaderLen + len(payload)),
+		// TODO: set identification properly
+		Identification: 0,
+		TimeToLive:     DefaultTTL,
+		Protocol:       ProtoICMP,
+		SrcAddress:     src,
+		DstAddress:     dst,
+	}
+	pkt := &Packet{
+		Header: hdr,
+		Data:   payload,
+	}
+
+	dstMac, err := iface.MACAddressByName(outIfname)
+	if err != nil {
+		return errors.Wrap(err, "failed to get destination MAC address")
+	}
+	return ethernet.Send(outIfname, dstMac, pkt, ethernet.TypeIPv4)
 }

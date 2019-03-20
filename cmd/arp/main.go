@@ -72,7 +72,12 @@ func main() {
 	payload.SrcHAddr = out.HardwareAddr
 	payload.SrcPAddr = ip
 
-	if err := ethernet.Send(*iface, dstMAC, payload, ethernet.TypeARP); err != nil {
+	dst, err := net.ParseMAC(dstMAC)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to parse destination MAC address")
+		os.Exit(1)
+	}
+	if err := ethernet.Send(*iface, dst, payload, ethernet.TypeARP); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}

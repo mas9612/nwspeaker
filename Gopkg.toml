@@ -26,13 +26,6 @@
 
 
 [[constraint]]
-<<<<<<< HEAD
-  name = "github.com/jessevdk/go-flags"
-  version = "1.4.0"
-
-[[constraint]]
-=======
->>>>>>> 267135b0592e1f32e18030a2acbc5d996890bc86
   name = "github.com/mitchellh/cli"
   version = "1.0.0"
 
