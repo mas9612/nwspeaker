@@ -15,6 +15,9 @@ func main() {
 		"arp": func() (cli.Command, error) {
 			return &command.ArpCommand{}, nil
 		},
+		"icmp": func() (cli.Command, error) {
+			return &command.ICMPCommand{}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

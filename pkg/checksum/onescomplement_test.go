@@ -1,4 +1,4 @@
-package ipv4
+package checksum
 
 import (
 	"bytes"
@@ -31,7 +31,7 @@ func TestOnesComplement(t *testing.T) {
 	}
 }
 
-var calculateChecksumTests = []struct {
+var sumOfOnesComplementTests = []struct {
 	in  []byte
 	out []byte
 }{
@@ -45,12 +45,12 @@ var calculateChecksumTests = []struct {
 	},
 }
 
-func TestCalculateChecksum(t *testing.T) {
+func TestSumOfOnesComplement16(t *testing.T) {
 	var checksum []byte
-	for _, tt := range calculateChecksumTests {
-		checksum = calculateChecksum(tt.in)
+	for _, tt := range sumOfOnesComplementTests {
+		checksum = SumOfOnesComplement16(tt.in)
 		if !bytes.Equal(checksum, tt.out) {
-			t.Errorf("calculateChecksum(%x) = %x, but got %x\n", tt.in, tt.out, checksum)
+			t.Errorf("SumOfOnesComplement16(%x) = %x, but got %x\n", tt.in, tt.out, checksum)
 		}
 	}
 }
