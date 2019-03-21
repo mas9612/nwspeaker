@@ -2,6 +2,7 @@ package icmp
 
 import (
 	"encoding/binary"
+	"math/rand"
 	"time"
 
 	"github.com/mas9612/nwspeaker/pkg/checksum"
@@ -46,6 +47,7 @@ type Option func(*config)
 type config struct {
 	srcMac string
 	srcIP  string
+	data   []byte
 }
 
 // Echo represents the data of ICMP Echo and Echo Reply message.
@@ -55,6 +57,13 @@ type Echo struct {
 	Data           []byte
 }
 
+// SetData sets data for ICMP echo message.
+func SetData(data []byte) Option {
+	return func(c *config) {
+		c.data = data
+	}
+}
+
 // NewEcho creates ICMP Echo message and return it.
 func NewEcho(outIfname, dstIP, dstMac string, opts ...Option) (*Message, error) {
 	c := config{}
@@ -62,12 +71,18 @@ func NewEcho(outIfname, dstIP, dstMac string, opts ...Option) (*Message, error) 
 		o(&c)
 	}
 
+	rand.Seed(time.Now().Unix())
+
 	msg := &Message{
 		Type: TypeEcho,
 	}
 	echoMsg := &Echo{
-		Identifier: uint16(time.Now().Unix()),
-		Data:       []byte("Hello world"),
+		Identifier: uint16(rand.Uint32()),
+	}
+	if len(c.data) > 0 {
+		echoMsg.Data = c.data
+	} else {
+		echoMsg.Data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	}
 	msg.Data = echoMsg
 
