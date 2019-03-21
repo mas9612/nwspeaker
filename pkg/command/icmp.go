@@ -66,8 +66,22 @@ func (c *ICMPCommand) Run(args []string) int {
 		return 0
 	}
 
-	// TODO: check required flags
+	lacked := make([]string, 0, 10)
+	if opts.Interface == "" {
+		lacked = append(lacked, "--interface")
+	}
+	if opts.DstIP == "" {
+		lacked = append(lacked, "--dst-ip")
+	}
+	if opts.DstMac == "" {
+		lacked = append(lacked, "--dst-mac")
+	}
+	if len(lacked) > 0 {
+		fmt.Fprintf(os.Stderr, "%s required\n", strings.Join(lacked, ", "))
+		return 1
+	}
 
+	// TODO: change to be able to reflect --type option
 	echo, err := icmp.NewEcho(opts.Interface, opts.DstIP, opts.DstMac)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create ICMP Echo packet: %v\n", err)
