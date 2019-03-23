@@ -11,10 +11,13 @@ build:
 test:
 	docker build -t nwspeaker-test -f Dockerfile.test .
 	docker run --rm nwspeaker-test
+	# remove dangling image
+	docker image prune -f
 
 clean:
 	go clean
 	rm -f $(BIN_CRAFTPKT)
+	docker image prune -f
 
 dep:
 	dep ensure
