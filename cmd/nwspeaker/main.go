@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/mas9612/nwspeaker/pkg/command"
@@ -9,20 +9,17 @@ import (
 )
 
 func main() {
-	c := cli.NewCLI("craftpkt", "0.1")
+	c := cli.NewCLI("nwspeaker", "0.1")
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"arp": func() (cli.Command, error) {
-			return &command.ArpCommand{}, nil
-		},
-		"icmp": func() (cli.Command, error) {
-			return &command.ICMPCommand{}, nil
+			return &command.ArpResolverCommand{}, nil
 		},
 	}
 
 	exitStatus, err := c.Run()
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}
 	os.Exit(exitStatus)
 }
