@@ -13,5 +13,5 @@ const (
 	TypeARP = 0x0806
 
 	// BufferLen is the length of buffer length which is used when receive data.
-	BufferLen = 1024
+	BufferLen = 1500
 )
