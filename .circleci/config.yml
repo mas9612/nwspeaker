@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/mas9612/nwspeaker
+    steps:
+      - checkout
+
+      - run:
+          name: Install all dependencies
+          command: go get -v -t -d ./...
+
+      - run:
+          name: Run unit tests
+          command: ./scripts/run_test.sh
+
+  golint:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/mas9612/nwspeaker
+    steps:
+      - checkout
+
+      - run:
+          name: Install all dependencies
+          command: go get -v -t -d ./...
+
+      - run:
+          name: Install golint
+          command: go get -u golang.org/x/lint/golint
+
+      - run:
+          name: Lint
+          command: golint -set_exit_status ./...
+
+workflows:
+  version: 2
+  lint_and_test:
+    jobs:
+      - build
+      - golint
