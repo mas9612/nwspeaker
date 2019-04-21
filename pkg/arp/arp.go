@@ -80,3 +80,28 @@ func (p *Packet) Encode() []byte {
 
 	return payload
 }
+
+// Parse parses given frame and returns a pointer to Packet instance.
+func Parse(b []byte) *Packet {
+	_ = ethernet.Parse(b)
+
+	b = b[ethernet.HeaderLen:]
+	if len(b) < payloadLen { // incomplete frame
+		return nil
+	}
+
+	p := &Packet{
+		SrcHAddr: make([]byte, ethernet.EtherLen),
+		DstHAddr: make([]byte, ethernet.EtherLen),
+	}
+	p.HType = binary.BigEndian.Uint16(b)
+	p.PType = binary.BigEndian.Uint16(b[2:])
+	p.HLen = b[4]
+	p.PLen = b[5]
+	p.Op = binary.BigEndian.Uint16(b[6:])
+	copy(p.SrcHAddr, b[8:])
+	p.SrcPAddr = net.IPv4(b[14], b[15], b[16], b[17])
+	copy(p.DstHAddr, b[18:])
+	p.DstPAddr = net.IPv4(b[24], b[25], b[26], b[27])
+	return p
+}

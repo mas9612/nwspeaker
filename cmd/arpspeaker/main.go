@@ -76,6 +76,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to receive ARP reply: %s\n", err.Error())
 		os.Exit(1)
 	}
-	// TODO: parse response
-	fmt.Printf("%x\n", b)
+	res := arp.Parse(b)
+	if res.SrcPAddr.String() == opts.Args.TargetIP {
+		fmt.Printf("MAC address of %s is %s\n", res.SrcPAddr.String(), res.SrcHAddr.String())
+	} else {
+		fmt.Printf("could not get the MAC address\n")
+	}
 }

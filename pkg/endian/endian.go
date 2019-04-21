@@ -22,6 +22,11 @@ func init() {
 	}
 }
 
+// HostEndian returns the binary.ByteOrder instance of host endianess.
+func HostEndian() binary.ByteOrder {
+	return nativeEndian
+}
+
 // Htons converts byteorder from host byteorder to network byteorder.
 func Htons(n uint16) uint16 {
 	buf := make([]byte, 2)

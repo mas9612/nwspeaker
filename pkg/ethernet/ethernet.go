@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"net"
 
+	"github.com/mas9612/nwspeaker/pkg/endian"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
 )
@@ -22,6 +23,18 @@ func (h *Header) Encode() []byte {
 	copy(header[6:], h.SrcAddr)
 	binary.BigEndian.PutUint16(header[12:], h.EtherType)
 	return header
+}
+
+// Parse parses given frame and returns a pointer to Header instance.
+func Parse(b []byte) *Header {
+	h := &Header{
+		DstAddr: make([]byte, EtherLen),
+		SrcAddr: make([]byte, EtherLen),
+	}
+	copy(h.DstAddr, b[0:6])
+	copy(h.SrcAddr, b[6:12])
+	h.EtherType = binary.BigEndian.Uint16(b[12:])
+	return h
 }
 
 // Payload represents the application data of ethernet packet.
@@ -81,7 +94,7 @@ func (s *Socket) Send(payload Payload, flags int, dst string) error {
 	hdr := Header{
 		SrcAddr:   s.iface.HardwareAddr,
 		DstAddr:   hw,
-		EtherType: s.proto,
+		EtherType: endian.Htons(s.proto),
 	}
 	copy(frame, hdr.Encode())
 
