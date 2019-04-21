@@ -11,4 +11,7 @@ const (
 	TypeIPv4 = 0x0800
 	// TypeARP is the type number of ARP
 	TypeARP = 0x0806
+
+	// BufferLen is the length of buffer length which is used when receive data.
+	BufferLen = 1500
 )
