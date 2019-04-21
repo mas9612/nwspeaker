@@ -13,7 +13,7 @@ jobs:
 
       - run:
           name: Run unit tests
-          command: ./scripts/run_test.sh
+          command: go test -v ./...
 
   golint:
     docker:
@@ -32,7 +32,7 @@ jobs:
 
       - run:
           name: Lint
-          command: golint -set_exit_status ./...
+          command: golint -set_exit_status ./cmd/... ./pkg/...
 
 workflows:
   version: 2
