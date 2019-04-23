@@ -54,9 +54,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "failed to create ARP packet: %s\n", err.Error())
 			os.Exit(1)
 		}
-		data.DstHAddr = oif.HardwareAddr
+		// according to RFC5227, we should only set sender hardware address and target ip address when send GARP.
+		// https://tools.ietf.org/html/rfc5227#section-2.1.1
 		data.SrcHAddr = oif.HardwareAddr
-		data.SrcPAddr = myip
 	} else {
 		var err error
 		data, err = arp.NewRequest(opts.Args.TargetIP)
