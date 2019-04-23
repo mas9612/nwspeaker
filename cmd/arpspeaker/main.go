@@ -16,6 +16,8 @@ import (
 
 type options struct {
 	Interface string `short:"i" long:"interface" required:"true" description:"Output interface name. Required."`
+	Garp      bool   `short:"g" long:"garp" description:"Send GARP instead of normal ARP request."`
+	Check     bool   `short:"c" long:"check" description:"Check the response from other host. If this is not true, simply send data and exit."`
 	Args      struct {
 		TargetIP string `description:"IP address want to get MAC address. Not used when -g flag is on."`
 	} `positional-args:"yes"`
@@ -28,16 +30,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if opts.Args.TargetIP == "" {
+	if !opts.Garp && opts.Args.TargetIP == "" {
 		fmt.Fprintf(os.Stderr, "TargetIP is required when -g flag is not set.\n")
 		os.Exit(1)
 	}
 
-	req, err := arp.NewRequest(opts.Args.TargetIP)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create ARP packet: %s\n", err.Error())
-		os.Exit(1)
-	}
 	oif, err := net.InterfaceByName(opts.Interface)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to get interface information: %s\n", err.Error())
@@ -48,8 +45,28 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to get ipv4 address: %s\n", err.Error())
 		os.Exit(1)
 	}
-	req.SrcHAddr = oif.HardwareAddr
-	req.SrcPAddr = myip
+
+	var data *arp.Packet
+	if opts.Garp {
+		var err error
+		data, err = arp.NewRequest(myip.String())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to create ARP packet: %s\n", err.Error())
+			os.Exit(1)
+		}
+		data.DstHAddr = oif.HardwareAddr
+		data.SrcHAddr = oif.HardwareAddr
+		data.SrcPAddr = myip
+	} else {
+		var err error
+		data, err = arp.NewRequest(opts.Args.TargetIP)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to create ARP packet: %s\n", err.Error())
+			os.Exit(1)
+		}
+		data.SrcHAddr = oif.HardwareAddr
+		data.SrcPAddr = myip
+	}
 
 	// prepare raw socket
 	soc, err := ethernet.Dial(endian.Htons(ethernet.TypeARP))
@@ -67,19 +84,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := soc.Send(req, 0, "ff:ff:ff:ff:ff:ff"); err != nil {
+	if err := soc.Send(data, 0, "ff:ff:ff:ff:ff:ff"); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to send ARP frame: %s\n", err.Error())
 		os.Exit(1)
 	}
-	b, err := soc.Recv(0)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to receive ARP reply: %s\n", err.Error())
-		os.Exit(1)
-	}
-	res := arp.Parse(b)
-	if res.SrcPAddr.String() == opts.Args.TargetIP {
-		fmt.Printf("MAC address of %s is %s\n", res.SrcPAddr.String(), res.SrcHAddr.String())
-	} else {
-		fmt.Printf("could not get the MAC address\n")
+	if opts.Check {
+		b, err := soc.Recv(0)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to receive ARP reply: %s\n", err.Error())
+			os.Exit(1)
+		}
+		res := arp.Parse(b)
+		if res.SrcPAddr.String() == opts.Args.TargetIP {
+			fmt.Printf("MAC address of %s is %s\n", res.SrcPAddr.String(), res.SrcHAddr.String())
+		} else {
+			fmt.Printf("could not get the MAC address\n")
+		}
 	}
 }
